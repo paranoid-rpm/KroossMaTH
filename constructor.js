@@ -170,7 +170,7 @@ function renderCluesList() {
         value="${w.clue}"
         data-wid="${w.id}" data-field="clue" />
       <button class="del-btn" style="font-size:.75rem;padding:2px 8px;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer"
-        data-wid="${w.id}">✕ Удалить</button>`;
+        data-wid="${w.id}">Удалить</button>`;
     container.appendChild(div);
   });
 
@@ -246,7 +246,7 @@ function saveCustomCW() {
   };
 
   localStorage.setItem(cw.id, JSON.stringify(cw));
-  showToast('✅ Кроссворд сохранён! Найти его можно во вкладке «Сохранённые → Созданные мной».');
+  showToast('Кроссворд сохранён. Найти его можно во вкладке «Сохранённые → Созданные мной».');
   renderSavedSection('created');
 }
 
@@ -271,7 +271,7 @@ function exportJSON() {
   a.href = URL.createObjectURL(blob);
   a.download = `${name}.json`;
   a.click();
-  showToast('⬇ JSON скачан');
+  showToast('Файл JSON скачан.');
 }
 
 // ====== ЭКСПОРТ PNG ======
@@ -363,7 +363,7 @@ function exportPNG() {
     a.href = URL.createObjectURL(blob);
     a.download = `${name || 'crossword'}.png`;
     a.click();
-    showToast('🖼 PNG скачан');
+    showToast('PNG-изображение кроссворда скачано.');
   });
 }
 
