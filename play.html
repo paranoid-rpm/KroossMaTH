@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KroossMaTH — Кроссворды и конструктор</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar" id="navbar">
+    <div class="nav-logo">Kroos<span>MaTH</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Главная</a></li>
+      <li><a href="theory.html" class="nav-link">Теория</a></li>
+      <li><a href="play.html#play" class="nav-link active">Решать</a></li>
+      <li><a href="play.html#constructor" class="nav-link">Конструктор</a></li>
+      <li><a href="play.html#saved" class="nav-link">Сохранённые</a></li>
+    </ul>
+    <button class="theme-toggle" id="themeToggle" title="Сменить тему">◐</button>
+  </nav>
+
+  <!-- PLAY -->
+  <section class="play-section" id="play" style="padding-top:100px">
+    <div class="container">
+      <h2 class="section-title">Решать кроссворды</h2>
+      <p class="section-subtitle">Выбери класс, тип и уровень сложности. Нажми на карточку, чтобы открыть кроссворд в режиме решения.</p>
+      <div class="play-filters">
+        <select id="playClass"><option value="">Все классы</option></select>
+        <select id="playType">
+          <option value="">Все типы</option>
+          <option value="numeric">Числовой</option>
+          <option value="word">Словесный</option>
+          <option value="equation">Уравнения</option>
+        </select>
+        <select id="playDiff">
+          <option value="">Все уровни</option>
+          <option value="easy">Лёгкий</option>
+          <option value="medium">Средний</option>
+          <option value="hard">Сложный</option>
+        </select>
+      </div>
+      <div class="crosswords-grid" id="crosswordsGrid"></div>
+      <div class="game-area" id="gameArea" style="display:none">
+        <div class="game-header">
+          <button class="btn btn-ghost" id="backBtn">← К списку</button>
+          <h3 id="gameTitle"></h3>
+          <div class="game-actions">
+            <button class="btn btn-ghost" id="checkBtn">Проверить</button>
+            <button class="btn btn-ghost" id="hintBtn">Подсказка</button>
+            <button class="btn btn-ghost" id="resetBtn">Сброс</button>
+          </div>
+        </div>
+        <div class="game-layout">
+          <div class="crossword-grid" id="crosswordGrid"></div>
+          <div class="clues-panel">
+            <div class="clues-col">
+              <h4>По горизонтали</h4>
+              <div id="cluesAcross"></div>
+            </div>
+            <div class="clues-col">
+              <h4>По вертикали</h4>
+              <div id="cluesDown"></div>
+            </div>
+          </div>
+        </div>
+        <div class="result-banner" id="resultBanner" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONSTRUCTOR -->
+  <section class="constructor-section" id="constructor">
+    <div class="container">
+      <h2 class="section-title">Конструктор кроссвордов</h2>
+      <p class="section-subtitle">Создай свой кроссворд: отметь чёрные клетки, пронумеруй слова, задай ответы и вопросы, затем сохрани или экспортируй.</p>
+      <div class="constructor-howto theory-block" style="margin-bottom:24px;padding:20px 24px;">
+        <h3>Краткая инструкция по конструктору</h3>
+        <ul>
+          <li>Выбери класс, тип кроссворда, сложность и размер сетки, затем нажми «Сгенерировать сетку».</li>
+          <li>Инструментом «■» пометь чёрные клетки, инструментом «□» верни белые.</li>
+          <li>Инструментом «123» кликни по начальной клетке слова, чтобы добавить его в список.</li>
+          <li>В правой панели введи ответ (только буквы) и текст вопроса для каждого слова.</li>
+          <li>Убедись, что пересечения слов не конфликтуют, затем нажми «Сохранить» или экспортируй JSON/PNG.</li>
+        </ul>
+      </div>
+      <div class="constructor-layout">
+        <div class="constructor-settings">
+          <h3>Настройки</h3>
+          <div class="setting-group">
+            <label>Название кроссворда</label>
+            <input type="text" id="cwName" placeholder="Мой кроссворд" />
+          </div>
+          <div class="setting-group">
+            <label>Класс</label>
+            <select id="cwClass"></select>
+          </div>
+          <div class="setting-group">
+            <label>Тип</label>
+            <select id="cwType">
+              <option value="numeric">Числовой</option>
+              <option value="word">Словесный</option>
+              <option value="equation">Уравнения</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label>Сложность</label>
+            <select id="cwDiff">
+              <option value="easy">Лёгкий</option>
+              <option value="medium">Средний</option>
+              <option value="hard">Сложный</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label>Размер сетки</label>
+            <div class="grid-size-inputs">
+              <input type="number" id="cwRows" value="10" min="5" max="20" />
+              <span>×</span>
+              <input type="number" id="cwCols" value="10" min="5" max="20" />
+            </div>
+          </div>
+          <button class="btn btn-primary" id="generateGridBtn">Сгенерировать сетку</button>
+        </div>
+        <div class="constructor-grid-area">
+          <div class="constructor-toolbar">
+            <button class="tool-btn active" data-tool="block" title="Чёрная клетка">■</button>
+            <button class="tool-btn" data-tool="cell" title="Белая клетка">□</button>
+            <button class="tool-btn" data-tool="number" title="Пронумеровать">123</button>
+          </div>
+          <div class="constructor-grid" id="constructorGrid"></div>
+        </div>
+        <div class="constructor-clues">
+          <h3>Вопросы</h3>
+          <div id="cluesList"></div>
+          <div class="constructor-export">
+            <button class="btn btn-primary" id="saveCwBtn">💾 Сохранить</button>
+            <button class="btn btn-ghost" id="exportJsonBtn">⬇ JSON</button>
+            <button class="btn btn-ghost" id="exportPngBtn">🖼 PNG</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAVED -->
+  <section class="saved-section" id="saved">
+    <div class="container">
+      <h2 class="section-title">Сохранённые</h2>
+      <div class="saved-tabs">
+        <button class="tab-btn active" data-saved="progress">Прогресс</button>
+        <button class="tab-btn" data-saved="created">Созданные мной</button>
+      </div>
+      <div class="saved-grid" id="savedGrid"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">Kroos<span>MaTH</span></div>
+      <p>Электронные математические кроссворды · 2026</p>
+      <a href="https://github.com/paranoid-rpm/KroossMaTH" target="_blank">GitHub</a>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="theory.js"></script>
+  <script src="app.js"></script>
+  <script src="constructor.js"></script>
+
+</body>
+</html>

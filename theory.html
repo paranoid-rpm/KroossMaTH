@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KroossMaTH — Теория математики</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar" id="navbar">
+    <div class="nav-logo">Kroos<span>MaTH</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Главная</a></li>
+      <li><a href="theory.html" class="nav-link active">Теория</a></li>
+      <li><a href="play.html#play" class="nav-link">Решать</a></li>
+      <li><a href="play.html#constructor" class="nav-link">Конструктор</a></li>
+      <li><a href="play.html#saved" class="nav-link">Сохранённые</a></li>
+    </ul>
+    <button class="theme-toggle" id="themeToggle" title="Сменить тему">◐</button>
+  </nav>
+
+  <section class="theory-section" id="theory" style="padding-top:100px">
+    <div class="container">
+      <h2 class="section-title">Теория по математике 1–11 класс</h2>
+      <p class="section-subtitle">Выбери класс и вкладку, чтобы увидеть ключевые темы и формулы. Материал можно использовать как справочник при решении кроссвордов.</p>
+      <div class="theory-tabs">
+        <button class="tab-btn active" data-tab="why">Описание и польза</button>
+        <button class="tab-btn" data-tab="types">Типы заданий</button>
+        <div class="class-selector">
+          <label>Класс:</label>
+          <select id="classSelect">
+            <option value="">— выбери класс —</option>
+          </select>
+        </div>
+      </div>
+      <div class="theory-content" id="theoryContent"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">Kroos<span>MaTH</span></div>
+      <p>Электронные математические кроссворды · 2026</p>
+      <a href="https://github.com/paranoid-rpm/KroossMaTH" target="_blank">GitHub</a>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="theory.js"></script>
+  <script src="app.js"></script>
+  <script src="constructor.js"></script>
+
+</body>
+</html>
