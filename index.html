@@ -14,11 +14,11 @@
   <nav class="navbar" id="navbar">
     <div class="nav-logo">Kroos<span>MaTH</span></div>
     <ul class="nav-links">
-      <li><a href="#home" class="nav-link active">Главная</a></li>
-      <li><a href="#theory" class="nav-link">Теория</a></li>
-      <li><a href="#play" class="nav-link">Решать</a></li>
-      <li><a href="#constructor" class="nav-link">Конструктор</a></li>
-      <li><a href="#saved" class="nav-link">Сохранённые</a></li>
+      <li><a href="index.html" class="nav-link active">Главная</a></li>
+      <li><a href="theory.html" class="nav-link">Теория</a></li>
+      <li><a href="play.html#play" class="nav-link">Решать</a></li>
+      <li><a href="play.html#constructor" class="nav-link">Конструктор</a></li>
+      <li><a href="play.html#saved" class="nav-link">Сохранённые</a></li>
     </ul>
     <button class="theme-toggle" id="themeToggle" title="Сменить тему">◐</button>
   </nav>
@@ -29,15 +29,15 @@
     <div class="hero-content">
       <div class="hero-badge">Образовательный проект</div>
       <h1 class="hero-title">Математика<br /><span>через кроссворды</span></h1>
-      <p class="hero-subtitle">Изучай, решай и создавай электронные математические кроссворды. От 1 до 11 класса — все темы, все уровни.</p>
+      <p class="hero-subtitle">Изучение математики от 1 до 11 класса через решение и создание электронных кроссвордов.</p>
       <div class="hero-actions">
-        <a href="#play" class="btn btn-primary">Начать решать</a>
-        <a href="#constructor" class="btn btn-ghost">Создать кроссворд</a>
+        <a href="play.html#play" class="btn btn-primary">Перейти к кроссвордам</a>
+        <a href="play.html#constructor" class="btn btn-ghost">Открыть конструктор</a>
       </div>
       <div class="hero-stats">
         <div class="stat-card"><span class="stat-num">11</span><span class="stat-label">классов</span></div>
         <div class="stat-card"><span class="stat-num">3</span><span class="stat-label">типа заданий</span></div>
-        <div class="stat-card"><span class="stat-num">∞</span><span class="stat-label">кроссвордов</span></div>
+        <div class="stat-card"><span class="stat-num">∞</span><span class="stat-label">вариантов</span></div>
       </div>
     </div>
     <div class="hero-visual">
@@ -45,7 +45,31 @@
     </div>
   </section>
 
-  <!-- FEATURES -->
+  <!-- HOWTO -->
+  <section class="features" id="howto">
+    <div class="container">
+      <h2 class="section-title">Как пользоваться сайтом</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">1</div>
+          <h3>Выбор режима</h3>
+          <p>Для изучения теории перейди в раздел «Теория». Для практики — в раздел «Решать» или сразу открой конструктор кроссвордов.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">2</div>
+          <h3>Решение кроссвордов</h3>
+          <p>Отфильтруй кроссворды по классу, типу и сложности, заполни клетки ответами и нажми «Проверить», чтобы увидеть результат.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">3</div>
+          <h3>Создание своих задач</h3>
+          <p>В конструкторе настрой сетку, отметь чёрные клетки, пронумеруй слова, добавь ответы и вопросы, затем сохрани или экспортируй.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES (общие преимущества) -->
   <section class="features" id="features">
     <div class="container">
       <h2 class="section-title">Что умеет KroossMaTH</h2>
@@ -53,170 +77,24 @@
         <div class="feature-card">
           <div class="feature-icon">📐</div>
           <h3>Теория по классам</h3>
-          <p>Структурированная база знаний по математике с 1 по 11 класс. Арифметика, алгебра, геометрия, анализ.</p>
+          <p>Структурированная база знаний по математике с 1 по 11 класс: арифметика, алгебра, геометрия, анализ, тригонометрия.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">🧩</div>
-          <h3>Три типа кроссвордов</h3>
-          <p>Числовые (цифра в каждую клетку), словесные (термины и понятия) и уравнения в сетке.</p>
+          <h3>Готовые кроссворды</h3>
+          <p>Набор задач трёх типов: числовые, словесные и кроссворды-уравнения с подсказками и автоматической проверкой.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">🛠️</div>
           <h3>Конструктор</h3>
-          <p>Создай собственный кроссворд: настрой сетку, добавь вопросы, задай уровень сложности.</p>
+          <p>Гибкая настройка сетки, добавление собственных вопросов и ответов, проверка пересечений, экспорт в JSON и PNG.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">💾</div>
-          <h3>Сохранение</h3>
-          <p>Прогресс и созданные кроссворды сохраняются в браузере. Экспорт в JSON или PNG.</p>
+          <h3>Сохранение прогресса</h3>
+          <p>Автоматическое сохранение результатов решения и созданных кроссвордов в браузере без регистрации и аккаунтов.</p>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- THEORY -->
-  <section class="theory-section" id="theory">
-    <div class="container">
-      <h2 class="section-title">Теория</h2>
-      <p class="section-subtitle">Зачем нужны математические кроссворды и база знаний по классам</p>
-      <div class="theory-tabs">
-        <button class="tab-btn active" data-tab="why">Зачем кроссворды?</button>
-        <button class="tab-btn" data-tab="types">Типы заданий</button>
-        <div class="class-selector">
-          <label>Класс:</label>
-          <select id="classSelect">
-            <option value="">— выбери класс —</option>
-          </select>
-        </div>
-      </div>
-      <div class="theory-content" id="theoryContent">
-        <!-- заполняется через theory.js -->
-      </div>
-    </div>
-  </section>
-
-  <!-- PLAY -->
-  <section class="play-section" id="play">
-    <div class="container">
-      <h2 class="section-title">Решать кроссворды</h2>
-      <div class="play-filters">
-        <select id="playClass"><option value="">Все классы</option></select>
-        <select id="playType">
-          <option value="">Все типы</option>
-          <option value="numeric">Числовой</option>
-          <option value="word">Словесный</option>
-          <option value="equation">Уравнения</option>
-        </select>
-        <select id="playDiff">
-          <option value="">Все уровни</option>
-          <option value="easy">Лёгкий</option>
-          <option value="medium">Средний</option>
-          <option value="hard">Сложный</option>
-        </select>
-      </div>
-      <div class="crosswords-grid" id="crosswordsGrid">
-        <!-- карточки кроссвордов -->
-      </div>
-      <!-- Игровое поле -->
-      <div class="game-area" id="gameArea" style="display:none">
-        <div class="game-header">
-          <button class="btn btn-ghost" id="backBtn">← Назад</button>
-          <h3 id="gameTitle"></h3>
-          <div class="game-actions">
-            <button class="btn btn-ghost" id="checkBtn">Проверить</button>
-            <button class="btn btn-ghost" id="hintBtn">Подсказка</button>
-            <button class="btn btn-ghost" id="resetBtn">Сброс</button>
-          </div>
-        </div>
-        <div class="game-layout">
-          <div class="crossword-grid" id="crosswordGrid"></div>
-          <div class="clues-panel">
-            <div class="clues-col">
-              <h4>По горизонтали</h4>
-              <div id="cluesAcross"></div>
-            </div>
-            <div class="clues-col">
-              <h4>По вертикали</h4>
-              <div id="cluesDown"></div>
-            </div>
-          </div>
-        </div>
-        <div class="result-banner" id="resultBanner" style="display:none"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONSTRUCTOR -->
-  <section class="constructor-section" id="constructor">
-    <div class="container">
-      <h2 class="section-title">Конструктор кроссвордов</h2>
-      <div class="constructor-layout">
-        <div class="constructor-settings">
-          <h3>Настройки</h3>
-          <div class="setting-group">
-            <label>Название кроссворда</label>
-            <input type="text" id="cwName" placeholder="Мой кроссворд" />
-          </div>
-          <div class="setting-group">
-            <label>Класс</label>
-            <select id="cwClass"></select>
-          </div>
-          <div class="setting-group">
-            <label>Тип</label>
-            <select id="cwType">
-              <option value="numeric">Числовой</option>
-              <option value="word">Словесный</option>
-              <option value="equation">Уравнения</option>
-            </select>
-          </div>
-          <div class="setting-group">
-            <label>Сложность</label>
-            <select id="cwDiff">
-              <option value="easy">Лёгкий</option>
-              <option value="medium">Средний</option>
-              <option value="hard">Сложный</option>
-            </select>
-          </div>
-          <div class="setting-group">
-            <label>Размер сетки</label>
-            <div class="grid-size-inputs">
-              <input type="number" id="cwRows" value="10" min="5" max="20" />
-              <span>×</span>
-              <input type="number" id="cwCols" value="10" min="5" max="20" />
-            </div>
-          </div>
-          <button class="btn btn-primary" id="generateGridBtn">Сгенерировать сетку</button>
-        </div>
-        <div class="constructor-grid-area">
-          <div class="constructor-toolbar">
-            <button class="tool-btn active" data-tool="block" title="Чёрная клетка">■</button>
-            <button class="tool-btn" data-tool="cell" title="Белая клетка">□</button>
-            <button class="tool-btn" data-tool="number" title="Пронумеровать">123</button>
-          </div>
-          <div class="constructor-grid" id="constructorGrid"></div>
-        </div>
-        <div class="constructor-clues">
-          <h3>Вопросы</h3>
-          <div id="cluesList"></div>
-          <div class="constructor-export">
-            <button class="btn btn-primary" id="saveCwBtn">💾 Сохранить</button>
-            <button class="btn btn-ghost" id="exportJsonBtn">⬇ JSON</button>
-            <button class="btn btn-ghost" id="exportPngBtn">🖼 PNG</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SAVED -->
-  <section class="saved-section" id="saved">
-    <div class="container">
-      <h2 class="section-title">Сохранённые</h2>
-      <div class="saved-tabs">
-        <button class="tab-btn active" data-saved="progress">Прогресс</button>
-        <button class="tab-btn" data-saved="created">Созданные мной</button>
-      </div>
-      <div class="saved-grid" id="savedGrid"></div>
     </div>
   </section>
 
