@@ -34,7 +34,6 @@ function initNavScroll() {
   const links = document.querySelectorAll('.nav-link');
   links.forEach(l => {
     const href = l.getAttribute('href') || '';
-    // Для ссылок внутри страницы оставляем плавный скролл
     if (href.startsWith('#')) {
       l.addEventListener('click', e => {
         e.preventDefault();
@@ -44,7 +43,6 @@ function initNavScroll() {
         l.classList.add('active');
       });
     }
-    // Для ссылок на другие страницы даём браузеру работать как обычно
   });
 }
 
@@ -76,7 +74,6 @@ function initHeroCrossword() {
       el.appendChild(div);
     });
   });
-  // анимация пульса
   setInterval(() => {
     const cells = el.querySelectorAll('.prev-cell:not(.black)');
     cells.forEach(c => c.classList.remove('active'));
@@ -85,7 +82,7 @@ function initHeroCrossword() {
   }, 800);
 }
 
-// ====== ВАЛИДАЦИЯ КРОССВОРДА (чтобы не показывать битые) ======
+// ====== ВАЛИДАЦИЯ КРОССВОРДА ======
 function isCrosswordValid(cw) {
   if (!cw || !cw.size || !cw.grid || !cw.words) return false;
   const { rows, cols } = cw.size;
@@ -127,7 +124,6 @@ function initPlaySection() {
 
   if (!gradeSelect || !grid) return;
 
-  // заполняем классы
   GRADES.forEach(g => {
     const opt = document.createElement('option');
     opt.value = g; opt.textContent = `${g} класс`;
@@ -166,7 +162,7 @@ function renderCards(cws, container) {
   if (!container) return;
   container.innerHTML = '';
   if (!cws.length) {
-    container.innerHTML = '<div class="empty-state"><span>🔍</span>Нет корректных кроссвордов по выбранному фильтру</div>';
+    container.innerHTML = '<div class="empty-state"><span></span>Нет корректных кроссвордов по выбранному фильтру</div>';
     return;
   }
   cws.forEach(cw => {
@@ -221,22 +217,10 @@ function renderGameGrid(cw) {
   container.innerHTML = '';
   container.style.gridTemplateColumns = `repeat(${cw.size.cols}, 40px)`;
 
-  // строим карту номеров
   const numberMap = {};
   cw.words.forEach(w => {
     const key = `${w.row},${w.col}`;
     if (!numberMap[key]) numberMap[key] = w.id;
-  });
-
-  // строим карту принадлежности клеток словам
-  const cellWordMap = {};
-  cw.words.forEach(w => {
-    for (let i = 0; i < w.answer.length; i++) {
-      const r = w.dir === 'down'  ? w.row + i : w.row;
-      const c = w.dir === 'across'? w.col + i : w.col;
-      if (!cellWordMap[`${r},${c}`]) cellWordMap[`${r},${c}`] = [];
-      cellWordMap[`${r},${c}`].push(w.id);
-    }
   });
 
   for (let r = 0; r < cw.size.rows; r++) {
@@ -441,15 +425,15 @@ function showBanner(pct) {
   if (pct === 100) {
     banner.style.borderColor = 'var(--green)';
     banner.style.color = 'var(--green)';
-    banner.textContent = '🎉 Отлично! Все ответы верны!';
+    banner.textContent = 'Отлично! Все ответы верны.';
   } else if (pct >= 60) {
     banner.style.borderColor = 'var(--yellow)';
     banner.style.color = 'var(--yellow)';
-    banner.textContent = `👍 Хорошо! ${pct}% правильных ответов`;
+    banner.textContent = `Хороший результат: ${pct}% правильных ответов.`;
   } else {
     banner.style.borderColor = 'var(--red)';
     banner.style.color = 'var(--red)';
-    banner.textContent = `❌ ${pct}% — попробуй ещё раз`;
+    banner.textContent = `Много ошибок: ${pct}% правильных ответов. Попробуй ещё раз.`;
   }
 }
 
@@ -532,7 +516,7 @@ function renderSavedSection(tab = 'progress') {
       .map(cw => ({ cw, prog: getProgress(cw.id) }))
       .filter(x => x.prog);
     if (!items.length) {
-      grid.innerHTML = '<div class="empty-state"><span>📭</span>Нет сохранённого прогресса</div>';
+      grid.innerHTML = '<div class="empty-state"><span></span>Нет сохранённого прогресса</div>';
       return;
     }
     items.forEach(({ cw, prog }) => {
@@ -544,15 +528,15 @@ function renderSavedSection(tab = 'progress') {
         <p>${cw.grade} класс · ${DIFF_LABELS[cw.difficulty]}</p>
         <p style="margin-top:6px;color:${pct===100?'var(--green)':pct>=60?'var(--yellow)':'var(--red)'}">${pct}% верно</p>
         <div class="saved-card-actions">
-          <button onclick="startGame(getCrosswordById('${cw.id}'))">▶ Продолжить</button>
-          <button class="del-btn" onclick="deleteProgress('${cw.id}')">✕</button>
+          <button onclick="startGame(getCrosswordById('${cw.id}'))">Продолжить</button>
+          <button class="del-btn" onclick="deleteProgress('${cw.id}')">Удалить</button>
         </div>`;
       grid.appendChild(card);
     });
   } else {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('km_custom_'));
     if (!keys.length) {
-      grid.innerHTML = '<div class="empty-state"><span>✏️</span>Нет созданных кроссвордов</div>';
+      grid.innerHTML = '<div class="empty-state"><span></span>Нет созданных кроссвордов</div>';
       return;
     }
     keys.forEach(k => {
@@ -563,9 +547,9 @@ function renderSavedSection(tab = 'progress') {
         <h4>${cw.title || 'Без названия'}</h4>
         <p>${cw.grade ? cw.grade + ' класс' : ''} · ${TYPE_LABELS[cw.type] || ''}</p>
         <div class="saved-card-actions">
-          <button onclick="loadCustomCW('${k}')">▶ Решать</button>
-          <button onclick="exportCustomJSON('${k}')">⬇ JSON</button>
-          <button class="del-btn" onclick="deleteCustomCW('${k}')">✕</button>
+          <button onclick="loadCustomCW('${k}')">Открыть</button>
+          <button onclick="exportCustomJSON('${k}')">Скачать JSON</button>
+          <button class="del-btn" onclick="deleteCustomCW('${k}')">Удалить</button>
         </div>`;
       grid.appendChild(card);
     });
