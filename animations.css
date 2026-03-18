@@ -1,0 +1,89 @@
+/* KroossMaTH — дополнительная анимация и микровзаимодействия */
+
+/* Навбар и ссылки */
+.navbar {
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.navbar:hover {
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Кнопки */
+.btn {
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Карточки */
+.cw-card,
+.saved-card,
+.feature-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.cw-card:hover,
+.saved-card:hover,
+.feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Акцент на активной ячейке кроссворда */
+.grid-cell.active {
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Живой фон на главной */
+.hero-bg {
+  animation: heroGlow 18s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlow {
+  0% {
+    opacity: 0.7;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(20px, -10px, 0) scale(1.03);
+  }
+  100% {
+    opacity: 0.8;
+    transform: translate3d(-10px, 10px, 0) scale(1.02);
+  }
+}
