@@ -29,17 +29,22 @@ function initTheme() {
   }
 }
 
-// ====== НАВБАР СКРОЛЛ ======
+// ====== НАВБАР СКРОЛЛ / МУЛЬТИСТРАНИЧНОСТЬ ======
 function initNavScroll() {
   const links = document.querySelectorAll('.nav-link');
   links.forEach(l => {
-    l.addEventListener('click', e => {
-      e.preventDefault();
-      const target = document.querySelector(l.getAttribute('href'));
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
-      links.forEach(x => x.classList.remove('active'));
-      l.classList.add('active');
-    });
+    const href = l.getAttribute('href') || '';
+    // Для ссылок внутри страницы оставляем плавный скролл
+    if (href.startsWith('#')) {
+      l.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+        links.forEach(x => x.classList.remove('active'));
+        l.classList.add('active');
+      });
+    }
+    // Для ссылок на другие страницы даём браузеру работать как обычно
   });
 }
 
@@ -80,6 +85,34 @@ function initHeroCrossword() {
   }, 800);
 }
 
+// ====== ВАЛИДАЦИЯ КРОССВОРДА (чтобы не показывать битые) ======
+function isCrosswordValid(cw) {
+  if (!cw || !cw.size || !cw.grid || !cw.words) return false;
+  const { rows, cols } = cw.size;
+  if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows <= 0 || cols <= 0) return false;
+  if (cw.grid.length !== rows) return false;
+  for (let r = 0; r < rows; r++) {
+    if (!Array.isArray(cw.grid[r]) || cw.grid[r].length !== cols) return false;
+  }
+
+  const used = {};
+  for (const w of cw.words) {
+    if (!w.answer || !w.answer.length) return false;
+    for (let i = 0; i < w.answer.length; i++) {
+      const r = w.dir === 'down'   ? w.row + i : w.row;
+      const c = w.dir === 'across' ? w.col + i : w.col;
+      if (r < 0 || c < 0 || r >= rows || c >= cols) return false;
+      if (cw.grid[r][c] === 0) return false;
+      const key = `${r},${c}`;
+      const ch = (w.answer[i] || '').toUpperCase();
+      if (!ch) return false;
+      if (used[key] && used[key] !== ch) return false;
+      used[key] = ch;
+    }
+  }
+  return true;
+}
+
 // ====== СЕКЦИЯ РЕШЕНИЯ ======
 function initPlaySection() {
   const gradeSelect = document.getElementById('playClass');
@@ -92,7 +125,7 @@ function initPlaySection() {
   const hintBtn     = document.getElementById('hintBtn');
   const resetBtn    = document.getElementById('resetBtn');
 
-  if (!gradeSelect) return;
+  if (!gradeSelect || !grid) return;
 
   // заполняем классы
   GRADES.forEach(g => {
@@ -104,21 +137,23 @@ function initPlaySection() {
   function refresh() {
     const cws = filterCrosswords({
       grade: gradeSelect.value,
-      type: typeSelect.value,
-      difficulty: diffSelect.value
-    });
+      type: typeSelect ? typeSelect.value : '',
+      difficulty: diffSelect ? diffSelect.value : ''
+    }).filter(isCrosswordValid);
     renderCards(cws, grid);
   }
 
   gradeSelect.addEventListener('change', refresh);
-  typeSelect.addEventListener('change', refresh);
-  diffSelect.addEventListener('change', refresh);
+  typeSelect && typeSelect.addEventListener('change', refresh);
+  diffSelect && diffSelect.addEventListener('change', refresh);
   refresh();
 
   backBtn && backBtn.addEventListener('click', () => {
+    if (!gameArea || !grid) return;
     gameArea.style.display = 'none';
     grid.style.display = '';
-    document.querySelector('.play-filters').style.display = '';
+    const filters = document.querySelector('.play-filters');
+    if (filters) filters.style.display = '';
     currentCW = null;
   });
 
@@ -131,7 +166,7 @@ function renderCards(cws, container) {
   if (!container) return;
   container.innerHTML = '';
   if (!cws.length) {
-    container.innerHTML = '<div class="empty-state"><span>🔍</span>Нет кроссвордов по фильтру</div>';
+    container.innerHTML = '<div class="empty-state"><span>🔍</span>Нет корректных кроссвордов по выбранному фильтру</div>';
     return;
   }
   cws.forEach(cw => {
@@ -165,10 +200,13 @@ function startGame(cw) {
   const title     = document.getElementById('gameTitle');
   const banner    = document.getElementById('resultBanner');
 
+  if (!gameArea || !grid) return;
+
   grid.style.display = 'none';
-  document.querySelector('.play-filters').style.display = 'none';
+  const filters = document.querySelector('.play-filters');
+  if (filters) filters.style.display = 'none';
   gameArea.style.display = 'block';
-  banner.style.display = 'none';
+  if (banner) banner.style.display = 'none';
 
   if (title) title.textContent = `${cw.title} · ${cw.grade} класс · ${DIFF_LABELS[cw.difficulty]}`;
 
@@ -236,8 +274,6 @@ function renderGameGrid(cw) {
 
 // ====== ФОКУС НА КЛЕТКЕ ======
 function onCellFocus(r, c, cw) {
-  const key = `${r},${c}`;
-  // находим слово
   const words = cw.words.filter(w => {
     for (let i = 0; i < w.answer.length; i++) {
       const wr = w.dir === 'down'  ? w.row + i : w.row;
@@ -250,7 +286,6 @@ function onCellFocus(r, c, cw) {
 
   let word = words.find(w => w.dir === activeDir) || words[0];
   if (activeWord && activeWord.id === word.id) {
-    // переключаем направление если есть пересечение
     const other = words.find(w => w.id !== word.id);
     if (other) word = other;
   }
@@ -268,7 +303,6 @@ function highlightWord(word, cw) {
     const cell = getCellEl(r, c);
     if (cell) cell.classList.add('highlighted');
   }
-  // активная клетка — фокус
   document.querySelectorAll('.grid-cell input:focus').forEach(inp => {
     const cell = inp.parentElement;
     cell.classList.add('active');
@@ -288,10 +322,8 @@ function onCellInput(e, r, c, cw) {
   e.target.value = val;
   userAnswers[`${r},${c}`] = val;
   saveProgress(cw);
-  // убираем подсветку правильно/неправильно
   const cell = getCellEl(r, c);
   if (cell) { cell.classList.remove('correct', 'wrong'); }
-  // двигаемся вперёд
   if (val && activeWord) moveToNext(r, c, cw);
 }
 
@@ -479,6 +511,7 @@ function getProgress(id) {
 // ====== СОХРАНЁННЫЕ ======
 function initSavedSection() {
   const tabs = document.querySelectorAll('[data-saved]');
+  if (!tabs.length) return;
   tabs.forEach(btn => {
     btn.addEventListener('click', () => {
       tabs.forEach(b => b.classList.remove('active'));
@@ -495,7 +528,9 @@ function renderSavedSection(tab = 'progress') {
   grid.innerHTML = '';
 
   if (tab === 'progress') {
-    const items = CROSSWORDS.map(cw => ({ cw, prog: getProgress(cw.id) })).filter(x => x.prog);
+    const items = CROSSWORDS.filter(isCrosswordValid)
+      .map(cw => ({ cw, prog: getProgress(cw.id) }))
+      .filter(x => x.prog);
     if (!items.length) {
       grid.innerHTML = '<div class="empty-state"><span>📭</span>Нет сохранённого прогресса</div>';
       return;
@@ -551,7 +586,8 @@ function deleteCustomCW(key) {
 function loadCustomCW(key) {
   const cw = JSON.parse(localStorage.getItem(key));
   if (cw) startGame(cw);
-  document.querySelector('#play').scrollIntoView({ behavior: 'smooth' });
+  const play = document.querySelector('#play');
+  if (play) play.scrollIntoView({ behavior: 'smooth' });
 }
 
 function exportCustomJSON(key) {
