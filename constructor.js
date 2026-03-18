@@ -1,4 +1,4 @@
-// KroossMaTH — constructor.js
+// KroossMaTH — constructor.js (улучшенный конструктор)
 
 let consGrid = [];
 let consRows = 10, consCols = 10;
@@ -10,13 +10,13 @@ let consNumberMap = {};
 // ====== ИНИЦИАЛИЗАЦИЯ ======
 function initConstructor() {
   const cwClass = document.getElementById('cwClass');
-  if (cwClass) {
-    GRADES.forEach(g => {
-      const opt = document.createElement('option');
-      opt.value = g; opt.textContent = `${g} класс`;
-      cwClass.appendChild(opt);
-    });
-  }
+  if (!cwClass) return;
+
+  GRADES.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g; opt.textContent = `${g} класс`;
+    cwClass.appendChild(opt);
+  });
 
   document.querySelectorAll('.tool-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -62,7 +62,6 @@ function renderConsGrid() {
   container.innerHTML = '';
   container.style.gridTemplateColumns = `repeat(${consCols}, 34px)`;
 
-  // пересчитываем номера
   recalcNumbers();
 
   for (let r = 0; r < consRows; r++) {
@@ -77,13 +76,13 @@ function renderConsGrid() {
         cell.textContent = consNumberMap[key];
       }
 
-      cell.addEventListener('click', () => onConsClick(r, c, cell));
+      cell.addEventListener('click', () => onConsClick(r, c));
       container.appendChild(cell);
     }
   }
 }
 
-function onConsClick(r, c, cell) {
+function onConsClick(r, c) {
   if (consTool === 'block') {
     consGrid[r][c] = consGrid[r][c] === 0 ? 1 : 0;
     renderConsGrid();
@@ -91,9 +90,7 @@ function onConsClick(r, c, cell) {
     consGrid[r][c] = 1;
     renderConsGrid();
   } else if (consTool === 'number') {
-    if (consGrid[r][c] === 1) {
-      addWordFromCell(r, c);
-    }
+    if (consGrid[r][c] === 1) addWordFromCell(r, c);
   }
 }
 
@@ -117,16 +114,15 @@ function recalcNumbers() {
 
 // ====== ДОБАВЛЕНИЕ СЛОВА ======
 function addWordFromCell(r, c) {
-  // определяем направление
   const canAcross = (c === 0 || consGrid[r][c-1] === 0) && (c+1 < consCols && consGrid[r][c+1] === 1);
   const canDown   = (r === 0 || consGrid[r-1][c] === 0) && (r+1 < consRows && consGrid[r+1][c] === 1);
 
   if (!canAcross && !canDown) {
-    alert('Слово должно начинаться в проходимой клетке и иметь хотя бы 2 буквы'); return;
+    alert('Слово должно начинаться в белой клетке и иметь хотя бы 2 буквы.');
+    return;
   }
 
   const dir = canAcross ? 'across' : 'down';
-  // вычисляем длину
   let len = 0;
   if (dir === 'across') {
     for (let cc = c; cc < consCols && consGrid[r][cc] === 1; cc++) len++;
@@ -134,9 +130,11 @@ function addWordFromCell(r, c) {
     for (let rr = r; rr < consRows && consGrid[rr][c] === 1; rr++) len++;
   }
 
-  // проверяем не дублируем
   const dup = consWords.find(w => w.row === r && w.col === c && w.dir === dir);
-  if (dup) { alert('Слово уже добавлено'); return; }
+  if (dup) {
+    alert('Слово с этой позиции и направлением уже добавлено.');
+    return;
+  }
 
   const word = {
     id: consWordCounter++,
@@ -155,7 +153,7 @@ function renderCluesList() {
   container.innerHTML = '';
 
   if (!consWords.length) {
-    container.innerHTML = '<p style="font-size:.8rem;color:var(--text2)">Выбери инструмент «123» и кликни на начальную клетку слова</p>';
+    container.innerHTML = '<p style="font-size:.8rem;color:var(--text2)"><b>Как начать:</b> выбери инструмент «123», кликни по начальной клетке слова (там, где оно начинается), затем введи ответ и вопрос.</p>';
     return;
   }
 
@@ -163,12 +161,12 @@ function renderCluesList() {
     const div = document.createElement('div');
     div.className = 'clue-editor';
     div.innerHTML = `
-      <label>${w.id}. ${w.dir === 'across' ? '→ Гориз.' : '↓ Верт.'} (дл. ${w.answer.length})</label>
-      <input type="text" placeholder="Ответ (буквы)"
+      <label>${w.id}. ${w.dir === 'across' ? '→ Гориз.' : '↓ Верт.'} (длина ${w.answer.length})</label>
+      <input type="text" placeholder="Ответ (только буквы без пробелов)"
         value="${w.answer === '_'.repeat(w.answer.length) ? '' : w.answer}"
         maxlength="${w.answer.length}"
         data-wid="${w.id}" data-field="answer" />
-      <input type="text" placeholder="Вопрос/подсказка"
+      <input type="text" placeholder="Вопрос / формулировка задания"
         value="${w.clue}"
         data-wid="${w.id}" data-field="clue" />
       <button class="del-btn" style="font-size:.75rem;padding:2px 8px;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer"
@@ -176,13 +174,18 @@ function renderCluesList() {
     container.appendChild(div);
   });
 
-  // слушаем изменения
   container.querySelectorAll('input[data-field]').forEach(inp => {
     inp.addEventListener('input', () => {
       const wid = parseInt(inp.dataset.wid);
       const field = inp.dataset.field;
       const w = consWords.find(x => x.id === wid);
-      if (w) w[field] = inp.value.toUpperCase();
+      if (!w) return;
+      if (field === 'answer') {
+        w[field] = inp.value.toUpperCase().replace(/[^А-ЯA-ZЁ]/g, '').slice(0, w.answer.length);
+        inp.value = w[field];
+      } else {
+        w[field] = inp.value;
+      }
     });
   });
 
@@ -195,6 +198,26 @@ function renderCluesList() {
   });
 }
 
+// ====== ПРОВЕРКА ПЕРЕСЕЧЕНИЙ ======
+function validateConsConflicts() {
+  const map = {};
+  for (const w of consWords) {
+    if (!w.answer) continue;
+    for (let i = 0; i < w.answer.length; i++) {
+      const ch = w.answer[i];
+      if (!ch || ch === '_') continue;
+      const r = w.dir === 'down'   ? w.row + i : w.row;
+      const c = w.dir === 'across' ? w.col + i : w.col;
+      if (r < 0 || c < 0 || r >= consRows || c >= consCols) return false;
+      if (consGrid[r][c] === 0) return false;
+      const key = `${r},${c}`;
+      if (map[key] && map[key] !== ch) return false;
+      map[key] = ch;
+    }
+  }
+  return true;
+}
+
 // ====== СОХРАНИТЬ В localStorage ======
 function saveCustomCW() {
   const name  = document.getElementById('cwName')?.value.trim() || 'Мой кроссворд';
@@ -204,7 +227,12 @@ function saveCustomCW() {
 
   const valid = consWords.filter(w => w.answer && !w.answer.includes('_') && w.clue);
   if (!valid.length) {
-    alert('Добавь хотя бы одно слово с ответом и вопросом'); return;
+    alert('Добавь хотя бы одно слово с заполненным ответом и вопросом.');
+    return;
+  }
+  if (!validateConsConflicts()) {
+    alert('Обнаружен конфликт букв в месте пересечения слов. Проверь ответы и длины слов.');
+    return;
   }
 
   const cw = {
@@ -218,13 +246,17 @@ function saveCustomCW() {
   };
 
   localStorage.setItem(cw.id, JSON.stringify(cw));
-  showToast('✅ Кроссворд сохранён!');
+  showToast('✅ Кроссворд сохранён! Найти его можно во вкладке «Сохранённые → Созданные мной».');
   renderSavedSection('created');
 }
 
 // ====== ЭКСПОРТ JSON ======
 function exportJSON() {
   const name = document.getElementById('cwName')?.value.trim() || 'crossword';
+  if (!validateConsConflicts()) {
+    alert('Экспорт невозможен: есть конфликт букв в пересечениях. Исправь ответы.');
+    return;
+  }
   const cw = {
     title: name,
     grade: parseInt(document.getElementById('cwClass')?.value) || 1,
@@ -244,6 +276,10 @@ function exportJSON() {
 
 // ====== ЭКСПОРТ PNG ======
 function exportPNG() {
+  if (!validateConsConflicts()) {
+    alert('Экспорт невозможен: есть конфликт букв в пересечениях. Исправь ответы.');
+    return;
+  }
   const canvas = document.createElement('canvas');
   const cellSize = 40;
   const pad = 20;
@@ -258,11 +294,9 @@ function exportPNG() {
   const blk   = isDark ? '#1a1a24' : '#ececf4';
   const bord  = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
-  // фон
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // заголовок
   const name = document.getElementById('cwName')?.value || 'KroossMaTH';
   ctx.fillStyle = fg;
   ctx.font = 'bold 16px Inter, sans-serif';
@@ -279,20 +313,17 @@ function exportPNG() {
         ctx.fillStyle = blk;
         ctx.fillRect(x, y, cellSize, cellSize);
       } else {
-        // белая клетка
         ctx.fillStyle = isDark ? '#1a1a24' : '#ffffff';
         ctx.fillRect(x, y, cellSize, cellSize);
         ctx.strokeStyle = bord;
         ctx.lineWidth = 1;
         ctx.strokeRect(x, y, cellSize, cellSize);
-        // номер
         const key = `${r},${c}`;
         if (consNumberMap[key]) {
           ctx.fillStyle = acc;
           ctx.font = '8px Inter, sans-serif';
           ctx.fillText(consNumberMap[key], x + 2, y + 9);
         }
-        // ответ если есть
         const w = consWords.find(ww => {
           for (let i = 0; i < ww.answer.length; i++) {
             const wr = ww.dir === 'down'   ? ww.row + i : ww.row;
@@ -316,7 +347,6 @@ function exportPNG() {
     }
   }
 
-  // подсказки
   const clueY = pad + 30 + consRows * cellSize + 16;
   ctx.fillStyle = fg;
   ctx.font = '10px Inter, sans-serif';
