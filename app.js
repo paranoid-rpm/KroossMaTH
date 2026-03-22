@@ -1,4 +1,4 @@
-// KroossMaTH — app.js — игровая логика
+// KroossMaTH — app.js — ПЕРЕРАБОТАННАЯ игровая логика
 
 let currentCW = null;
 let userAnswers = {};
@@ -29,7 +29,7 @@ function initTheme() {
   }
 }
 
-// ====== НАВБАР СКРОЛЛ / МУЛЬТИСТРАНИЧНОСТЬ ======
+// ====== НАВБАР СКРОЛЛ ======
 function initNavScroll() {
   const links = document.querySelectorAll('.nav-link');
   links.forEach(l => {
@@ -46,7 +46,7 @@ function initNavScroll() {
   });
 }
 
-// ====== HERO КРОССВОРД (превью) ======
+// ====== HERO КРОССВОРД ======
 function initHeroCrossword() {
   const el = document.getElementById('heroCrossword');
   if (!el) return;
@@ -91,7 +91,6 @@ function isCrosswordValid(cw) {
   for (let r = 0; r < rows; r++) {
     if (!Array.isArray(cw.grid[r]) || cw.grid[r].length !== cols) return false;
   }
-
   const used = {};
   for (const w of cw.words) {
     if (!w.answer || !w.answer.length) return false;
@@ -140,17 +139,17 @@ function initPlaySection() {
   }
 
   gradeSelect.addEventListener('change', refresh);
-  typeSelect && typeSelect.addEventListener('change', refresh);
-  diffSelect && diffSelect.addEventListener('change', refresh);
+  typeSelect  && typeSelect.addEventListener('change', refresh);
+  diffSelect  && diffSelect.addEventListener('change', refresh);
   refresh();
 
   backBtn && backBtn.addEventListener('click', () => {
-    if (!gameArea || !grid) return;
     gameArea.style.display = 'none';
     grid.style.display = '';
     const filters = document.querySelector('.play-filters');
     if (filters) filters.style.display = '';
     currentCW = null;
+    activeWord = null;
   });
 
   checkBtn && checkBtn.addEventListener('click', checkAnswers);
@@ -162,7 +161,7 @@ function renderCards(cws, container) {
   if (!container) return;
   container.innerHTML = '';
   if (!cws.length) {
-    container.innerHTML = '<div class="empty-state"><span></span>Нет корректных кроссвордов по выбранному фильтру</div>';
+    container.innerHTML = '<div class="empty-state"><span>😔</span>Нет корректных кроссвордов по выбранному фильтру</div>';
     return;
   }
   cws.forEach(cw => {
@@ -187,27 +186,39 @@ function renderCards(cws, container) {
 
 // ====== ЗАПУСК ИГРЫ ======
 function startGame(cw) {
+  if (!cw) return;
   currentCW = cw;
   userAnswers = loadProgress(cw.id) || {};
   activeWord = null;
+  activeDir = 'across';
 
-  const gameArea  = document.getElementById('gameArea');
-  const grid      = document.getElementById('crosswordsGrid');
-  const title     = document.getElementById('gameTitle');
-  const banner    = document.getElementById('resultBanner');
+  const gameArea = document.getElementById('gameArea');
+  const grid     = document.getElementById('crosswordsGrid');
+  const title    = document.getElementById('gameTitle');
+  const banner   = document.getElementById('resultBanner');
 
-  if (!gameArea || !grid) return;
-
-  grid.style.display = 'none';
+  if (!gameArea) return;
+  grid && (grid.style.display = 'none');
   const filters = document.querySelector('.play-filters');
   if (filters) filters.style.display = 'none';
   gameArea.style.display = 'block';
   if (banner) banner.style.display = 'none';
-
   if (title) title.textContent = `${cw.title} · ${cw.grade} класс · ${DIFF_LABELS[cw.difficulty]}`;
 
   renderGameGrid(cw);
   renderClues(cw);
+
+  // авто-фокус на первое слово
+  if (cw.words.length) {
+    const first = cw.words[0];
+    activeWord = first;
+    activeDir  = first.dir;
+    setTimeout(() => {
+      focusCell(first.row, first.col);
+      highlightWord(first);
+      updateClueHighlight(first.id);
+    }, 50);
+  }
 }
 
 // ====== РЕНДЕР СЕТКИ ======
@@ -217,6 +228,7 @@ function renderGameGrid(cw) {
   container.innerHTML = '';
   container.style.gridTemplateColumns = `repeat(${cw.size.cols}, 40px)`;
 
+  // Строим numberMap — номер слова по стартовой клетке
   const numberMap = {};
   cw.words.forEach(w => {
     const key = `${w.row},${w.col}`;
@@ -243,12 +255,15 @@ function renderGameGrid(cw) {
         const input = document.createElement('input');
         input.type = 'text';
         input.maxLength = 1;
+        input.autocomplete = 'off';
+        input.autocorrect = 'off';
+        input.spellcheck = false;
         input.dataset.row = r;
         input.dataset.col = c;
         if (userAnswers[key]) input.value = userAnswers[key];
-        input.addEventListener('focus', () => onCellFocus(r, c, cw));
-        input.addEventListener('input', (e) => onCellInput(e, r, c, cw));
-        input.addEventListener('keydown', (e) => onCellKeydown(e, r, c, cw));
+        input.addEventListener('focus', () => onCellFocus(r, c));
+        input.addEventListener('input',   e  => onCellInput(e, r, c));
+        input.addEventListener('keydown', e  => onCellKeydown(e, r, c));
         cell.appendChild(input);
       }
       container.appendChild(cell);
@@ -257,73 +272,114 @@ function renderGameGrid(cw) {
 }
 
 // ====== ФОКУС НА КЛЕТКЕ ======
-function onCellFocus(r, c, cw) {
-  const words = cw.words.filter(w => {
+function onCellFocus(r, c) {
+  if (!currentCW) return;
+  const words = getWordsAtCell(r, c);
+  if (!words.length) return;
+
+  // Если кликнули на клетку того же слова — не меняем
+  if (activeWord && words.find(w => w.id === activeWord.id)) {
+    // если есть слово в другом направлении — переключаем при повторном клике
+    highlightWord(activeWord);
+    updateClueHighlight(activeWord.id);
+    return;
+  }
+
+  // Предпочитаем текущее направление
+  let word = words.find(w => w.dir === activeDir) || words[0];
+  activeWord = word;
+  activeDir  = word.dir;
+  highlightWord(word);
+  updateClueHighlight(word.id);
+}
+
+function getWordsAtCell(r, c) {
+  if (!currentCW) return [];
+  return currentCW.words.filter(w => {
     for (let i = 0; i < w.answer.length; i++) {
-      const wr = w.dir === 'down'  ? w.row + i : w.row;
-      const wc = w.dir === 'across'? w.col + i : w.col;
+      const wr = w.dir === 'down'   ? w.row + i : w.row;
+      const wc = w.dir === 'across' ? w.col + i : w.col;
       if (wr === r && wc === c) return true;
     }
     return false;
   });
-  if (!words.length) return;
-
-  let word = words.find(w => w.dir === activeDir) || words[0];
-  if (activeWord && activeWord.id === word.id) {
-    const other = words.find(w => w.id !== word.id);
-    if (other) word = other;
-  }
-  activeWord = word;
-  activeDir = word.dir;
-  highlightWord(word, cw);
-  updateClueHighlight(word.id);
 }
 
-function highlightWord(word, cw) {
-  document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('highlighted', 'active'));
+function highlightWord(word) {
+  // Снимаем все подсветки
+  document.querySelectorAll('.grid-cell').forEach(c => {
+    c.classList.remove('highlighted', 'active-cell');
+  });
+  if (!word) return;
+  // Подсвечиваем слово
   for (let i = 0; i < word.answer.length; i++) {
-    const r = word.dir === 'down'  ? word.row + i : word.row;
-    const c = word.dir === 'across'? word.col + i : word.col;
+    const r = word.dir === 'down'   ? word.row + i : word.row;
+    const c = word.dir === 'across' ? word.col + i : word.col;
     const cell = getCellEl(r, c);
     if (cell) cell.classList.add('highlighted');
   }
-  document.querySelectorAll('.grid-cell input:focus').forEach(inp => {
-    const cell = inp.parentElement;
-    cell.classList.add('active');
-    cell.classList.remove('highlighted');
-  });
+  // Активная клетка (та где курсор)
+  const focused = document.activeElement;
+  if (focused && focused.tagName === 'INPUT') {
+    const cell = focused.parentElement;
+    if (cell && cell.classList.contains('highlighted')) {
+      cell.classList.add('active-cell');
+    }
+  }
 }
 
 function updateClueHighlight(wordId) {
   document.querySelectorAll('.clue-item').forEach(el => {
     el.classList.toggle('active', parseInt(el.dataset.id) === wordId);
   });
+  // Скроллим активную подсказку в видимую область
+  const active = document.querySelector('.clue-item.active');
+  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// ====== ВВОД ======
-function onCellInput(e, r, c, cw) {
-  const val = e.target.value.toUpperCase().slice(-1);
+// ====== ВВОД СИМВОЛА ======
+function onCellInput(e, r, c) {
+  const val = e.target.value.replace(/[^а-яёА-ЯЁa-zA-Z0-9]/g, '').toUpperCase().slice(-1);
   e.target.value = val;
-  userAnswers[`${r},${c}`] = val;
-  saveProgress(cw);
-  const cell = getCellEl(r, c);
-  if (cell) { cell.classList.remove('correct', 'wrong'); }
-  if (val && activeWord) moveToNext(r, c, cw);
-}
-
-function onCellKeydown(e, r, c, cw) {
-  if (e.key === 'Backspace' && !e.target.value) {
-    moveToPrev(r, c, cw);
+  const key = `${r},${c}`;
+  if (val) {
+    userAnswers[key] = val;
+  } else {
+    delete userAnswers[key];
   }
-  if (e.key === 'ArrowRight') moveFocus(r, c+1, cw);
-  if (e.key === 'ArrowLeft')  moveFocus(r, c-1, cw);
-  if (e.key === 'ArrowDown')  moveFocus(r+1, c, cw);
-  if (e.key === 'ArrowUp')    moveFocus(r-1, c, cw);
+  if (currentCW) saveProgress(currentCW);
+
+  const cell = getCellEl(r, c);
+  if (cell) cell.classList.remove('correct', 'wrong');
+
+  if (val && activeWord) moveToNext(r, c);
 }
 
-function moveToNext(r, c, cw) {
+// ====== НАВИГАЦИЯ КЛАВИШАМИ ======
+function onCellKeydown(e, r, c) {
+  switch (e.key) {
+    case 'Backspace':
+      if (!e.target.value) {
+        e.preventDefault();
+        moveToPrev(r, c);
+      }
+      break;
+    case 'ArrowRight': e.preventDefault(); moveFocusDirect(r, c + 1); break;
+    case 'ArrowLeft':  e.preventDefault(); moveFocusDirect(r, c - 1); break;
+    case 'ArrowDown':  e.preventDefault(); moveFocusDirect(r + 1, c); break;
+    case 'ArrowUp':    e.preventDefault(); moveFocusDirect(r - 1, c); break;
+    case 'Tab': {
+      e.preventDefault();
+      switchToNextWord(e.shiftKey);
+      break;
+    }
+  }
+}
+
+function moveToNext(r, c) {
   if (!activeWord) return;
   const idx = getIndexInWord(activeWord, r, c);
+  if (idx < 0) return;
   if (idx < activeWord.answer.length - 1) {
     const nr = activeWord.dir === 'down'   ? r + 1 : r;
     const nc = activeWord.dir === 'across' ? c + 1 : c;
@@ -331,22 +387,56 @@ function moveToNext(r, c, cw) {
   }
 }
 
-function moveToPrev(r, c, cw) {
+function moveToPrev(r, c) {
   if (!activeWord) return;
   const idx = getIndexInWord(activeWord, r, c);
   if (idx > 0) {
     const nr = activeWord.dir === 'down'   ? r - 1 : r;
     const nc = activeWord.dir === 'across' ? c - 1 : c;
-    focusCell(nr, nc);
+    const cell = getCellEl(nr, nc);
+    if (cell) {
+      const inp = cell.querySelector('input');
+      if (inp) {
+        // Очищаем предыдущую клетку
+        inp.value = '';
+        const key = `${nr},${nc}`;
+        delete userAnswers[key];
+        if (currentCW) saveProgress(currentCW);
+        cell.classList.remove('correct', 'wrong');
+        inp.focus();
+      }
+    }
   }
 }
 
-function moveFocus(r, c, cw) {
+function moveFocusDirect(r, c) {
   const el = getCellEl(r, c);
   if (el && !el.classList.contains('black')) {
     const inp = el.querySelector('input');
     if (inp) inp.focus();
   }
+}
+
+function switchToNextWord(reverse) {
+  if (!currentCW || !currentCW.words.length) return;
+  const words = currentCW.words;
+  if (!activeWord) {
+    activeWord = words[0];
+    activeDir  = activeWord.dir;
+    focusCell(activeWord.row, activeWord.col);
+    highlightWord(activeWord);
+    updateClueHighlight(activeWord.id);
+    return;
+  }
+  const idx = words.findIndex(w => w.id === activeWord.id);
+  const next = reverse
+    ? words[(idx - 1 + words.length) % words.length]
+    : words[(idx + 1) % words.length];
+  activeWord = next;
+  activeDir  = next.dir;
+  focusCell(next.row, next.col);
+  highlightWord(next);
+  updateClueHighlight(next.id);
 }
 
 function getIndexInWord(word, r, c) {
@@ -360,14 +450,17 @@ function getIndexInWord(word, r, c) {
 
 function focusCell(r, c) {
   const el = getCellEl(r, c);
-  if (el) { const inp = el.querySelector('input'); if (inp) inp.focus(); }
+  if (el) {
+    const inp = el.querySelector('input');
+    if (inp) inp.focus();
+  }
 }
 
 function getCellEl(r, c) {
-  return document.querySelector(`.grid-cell[data-row="${r}"][data-col="${c}"]`);
+  return document.querySelector(`#crosswordGrid .grid-cell[data-row="${r}"][data-col="${c}"]`);
 }
 
-// ====== ПОДСКАЗКИ ======
+// ====== ПОДСКАЗКИ (список слов) ======
 function renderClues(cw) {
   const across = document.getElementById('cluesAcross');
   const down   = document.getElementById('cluesDown');
@@ -377,85 +470,90 @@ function renderClues(cw) {
   cw.words.forEach(w => {
     const el = document.createElement('div');
     el.className = 'clue-item';
-    el.dataset.id = w.id;
-    el.innerHTML = `<span>${w.id}.</span>${w.clue}`;
+    el.dataset.id  = w.id;
+    el.innerHTML = `<span class="clue-num">${w.id}.</span><span class="clue-text">${w.clue}</span>`;
     el.addEventListener('click', () => {
       activeWord = w;
       activeDir  = w.dir;
       focusCell(w.row, w.col);
-      highlightWord(w, cw);
+      highlightWord(w);
       updateClueHighlight(w.id);
     });
     (w.dir === 'across' ? across : down).appendChild(el);
   });
 }
 
-// ====== ПРОВЕРКА ======
+// ====== ПРОВЕРКА ОТВЕТОВ ======
 function checkAnswers() {
   if (!currentCW) return;
   let correct = 0, total = 0;
+  const seen = new Set();
   currentCW.words.forEach(w => {
     for (let i = 0; i < w.answer.length; i++) {
       const r = w.dir === 'down'   ? w.row + i : w.row;
       const c = w.dir === 'across' ? w.col + i : w.col;
       const key = `${r},${c}`;
+      if (seen.has(key)) continue; // не считаем пересечения дважды
+      seen.add(key);
+      total++;
       const cell = getCellEl(r, c);
       const val  = (userAnswers[key] || '').toUpperCase();
       const exp  = w.answer[i].toUpperCase();
-      total++;
       if (val === exp) {
         correct++;
-        cell && cell.classList.add('correct');
-        cell && cell.classList.remove('wrong');
+        cell && cell.classList.replace('wrong', 'correct') || cell && cell.classList.add('correct');
       } else if (val) {
-        cell && cell.classList.add('wrong');
-        cell && cell.classList.remove('correct');
+        cell && cell.classList.replace('correct', 'wrong') || cell && cell.classList.add('wrong');
+      } else {
+        cell && cell.classList.remove('correct', 'wrong');
       }
     }
   });
   const pct = Math.round(correct / total * 100);
   saveProgressResult(currentCW.id, correct, total);
-  showBanner(pct);
+  showBanner(pct, correct, total);
 }
 
-function showBanner(pct) {
+function showBanner(pct, correct, total) {
   const banner = document.getElementById('resultBanner');
   if (!banner) return;
   banner.style.display = 'block';
   if (pct === 100) {
-    banner.style.borderColor = 'var(--green)';
-    banner.style.color = 'var(--green)';
-    banner.textContent = 'Отлично! Все ответы верны.';
+    banner.className = 'result-banner result-success';
+    banner.innerHTML = `🎉 Отлично! Все <b>${total}</b> букв верны!`;
   } else if (pct >= 60) {
-    banner.style.borderColor = 'var(--yellow)';
-    banner.style.color = 'var(--yellow)';
-    banner.textContent = `Хороший результат: ${pct}% правильных ответов.`;
+    banner.className = 'result-banner result-warn';
+    banner.innerHTML = `👍 Хороший результат: <b>${correct}</b> из <b>${total}</b> (${pct}%). Попробуй улучшить!`;
   } else {
-    banner.style.borderColor = 'var(--red)';
-    banner.style.color = 'var(--red)';
-    banner.textContent = `Много ошибок: ${pct}% правильных ответов. Попробуй ещё раз.`;
+    banner.className = 'result-banner result-error';
+    banner.innerHTML = `😕 Нужно постараться: <b>${correct}</b> из <b>${total}</b> (${pct}%). Используй подсказки!`;
   }
 }
 
-// ====== ПОДСКАЗКА (1 буква) ======
+// ====== ПОДСКАЗКА (1 буква активного слова) ======
 function giveHint() {
-  if (!currentCW || !activeWord) return;
+  if (!currentCW || !activeWord) {
+    showToast('Сначала выбери слово (кликни по клетке или подсказке).');
+    return;
+  }
   for (let i = 0; i < activeWord.answer.length; i++) {
     const r = activeWord.dir === 'down'   ? activeWord.row + i : activeWord.row;
     const c = activeWord.dir === 'across' ? activeWord.col + i : activeWord.col;
     const key = `${r},${c}`;
-    if (!userAnswers[key] || userAnswers[key] !== activeWord.answer[i]) {
-      userAnswers[key] = activeWord.answer[i];
+    if ((userAnswers[key] || '').toUpperCase() !== activeWord.answer[i].toUpperCase()) {
+      userAnswers[key] = activeWord.answer[i].toUpperCase();
       const cell = getCellEl(r, c);
       if (cell) {
         const inp = cell.querySelector('input');
-        if (inp) inp.value = activeWord.answer[i];
+        if (inp) inp.value = activeWord.answer[i].toUpperCase();
         cell.classList.add('correct');
+        cell.classList.remove('wrong');
       }
       saveProgress(currentCW);
-      break;
+      return;
     }
   }
+  showToast('Все буквы этого слова уже правильно заполнены!');
 }
 
 // ====== СБРОС ======
@@ -463,15 +561,17 @@ function resetGame() {
   if (!currentCW) return;
   userAnswers = {};
   localStorage.removeItem(`km_progress_${currentCW.id}`);
-  document.querySelectorAll('.grid-cell').forEach(c => {
-    c.classList.remove('correct', 'wrong', 'highlighted', 'active');
+  document.querySelectorAll('#crosswordGrid .grid-cell').forEach(c => {
+    c.classList.remove('correct', 'wrong', 'highlighted', 'active-cell');
   });
-  document.querySelectorAll('.grid-cell input').forEach(inp => inp.value = '');
+  document.querySelectorAll('#crosswordGrid .grid-cell input').forEach(inp => inp.value = '');
   const banner = document.getElementById('resultBanner');
   if (banner) banner.style.display = 'none';
+  activeWord = null;
+  showToast('Сброс выполнен.');
 }
 
-// ====== СОХРАНЕНИЕ ПРОГРЕССА ======
+// ====== ПРОГРЕСС ======
 function saveProgress(cw) {
   localStorage.setItem(`km_progress_${cw.id}`, JSON.stringify(userAnswers));
 }
@@ -482,8 +582,7 @@ function loadProgress(id) {
 }
 
 function saveProgressResult(id, correct, total) {
-  const key = `km_result_${id}`;
-  localStorage.setItem(key, JSON.stringify({ correct, total, date: Date.now() }));
+  localStorage.setItem(`km_result_${id}`, JSON.stringify({ correct, total, date: Date.now() }));
   renderSavedSection();
 }
 
@@ -516,17 +615,18 @@ function renderSavedSection(tab = 'progress') {
       .map(cw => ({ cw, prog: getProgress(cw.id) }))
       .filter(x => x.prog);
     if (!items.length) {
-      grid.innerHTML = '<div class="empty-state"><span></span>Нет сохранённого прогресса</div>';
+      grid.innerHTML = '<div class="empty-state"><span>📭</span>Нет сохранённого прогресса</div>';
       return;
     }
     items.forEach(({ cw, prog }) => {
       const pct = Math.round(prog.correct / prog.total * 100);
+      const color = pct === 100 ? 'var(--green)' : pct >= 60 ? 'var(--yellow)' : 'var(--red)';
       const card = document.createElement('div');
       card.className = 'saved-card fade-in';
       card.innerHTML = `
         <h4>${cw.title}</h4>
         <p>${cw.grade} класс · ${DIFF_LABELS[cw.difficulty]}</p>
-        <p style="margin-top:6px;color:${pct===100?'var(--green)':pct>=60?'var(--yellow)':'var(--red)'}">${pct}% верно</p>
+        <p style="margin-top:6px;color:${color}">${pct}% верно (${prog.correct}/${prog.total})</p>
         <div class="saved-card-actions">
           <button onclick="startGame(getCrosswordById('${cw.id}'))">Продолжить</button>
           <button class="del-btn" onclick="deleteProgress('${cw.id}')">Удалить</button>
@@ -536,11 +636,13 @@ function renderSavedSection(tab = 'progress') {
   } else {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('km_custom_'));
     if (!keys.length) {
-      grid.innerHTML = '<div class="empty-state"><span></span>Нет созданных кроссвордов</div>';
+      grid.innerHTML = '<div class="empty-state"><span>📭</span>Нет созданных кроссвордов</div>';
       return;
     }
     keys.forEach(k => {
-      const cw = JSON.parse(localStorage.getItem(k));
+      let cw;
+      try { cw = JSON.parse(localStorage.getItem(k)); } catch(e) { return; }
+      if (!cw) return;
       const card = document.createElement('div');
       card.className = 'saved-card fade-in';
       card.innerHTML = `
@@ -568,14 +670,18 @@ function deleteCustomCW(key) {
 }
 
 function loadCustomCW(key) {
-  const cw = JSON.parse(localStorage.getItem(key));
-  if (cw) startGame(cw);
-  const play = document.querySelector('#play');
-  if (play) play.scrollIntoView({ behavior: 'smooth' });
+  let cw;
+  try { cw = JSON.parse(localStorage.getItem(key)); } catch(e) { return; }
+  if (!cw) return;
+  const playSection = document.querySelector('#play');
+  if (playSection) playSection.scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => startGame(cw), 300);
 }
 
 function exportCustomJSON(key) {
-  const cw = JSON.parse(localStorage.getItem(key));
+  let cw;
+  try { cw = JSON.parse(localStorage.getItem(key)); } catch(e) { return; }
+  if (!cw) return;
   const blob = new Blob([JSON.stringify(cw, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -583,5 +689,30 @@ function exportCustomJSON(key) {
   a.click();
 }
 
-// ====== СТАРТ ======
+// ====== ТОСТ ======
+function showToast(msg) {
+  let toast = document.getElementById('km-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'km-toast';
+    toast.style.cssText = `
+      position:fixed;bottom:32px;right:32px;z-index:9999;
+      padding:12px 20px;
+      background:var(--bg2);
+      border:1px solid var(--border);
+      border-radius:10px;
+      backdrop-filter:blur(12px);
+      font-size:.875rem;
+      color:var(--text);
+      transition:opacity .3s;
+      pointer-events:none;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2800);
+}
+
 document.addEventListener('DOMContentLoaded', initApp);

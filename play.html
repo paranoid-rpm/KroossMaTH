@@ -8,6 +8,297 @@
   <link rel="stylesheet" href="animations.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== КОНСТРУКТОР — БЛОЧНЫЙ СТИЛЬ ===== */
+    .cons-steps {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .cons-step-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      color: var(--text2);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .cons-step-btn .step-num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+    .cons-step-btn.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg2));
+    }
+    .cons-step-btn.active .step-num {
+      background: var(--accent);
+      color: #fff;
+    }
+    .cons-step-btn.done .step-num {
+      background: var(--green);
+      color: #fff;
+    }
+    .cons-step-btn.done {
+      border-color: var(--green);
+      color: var(--text2);
+    }
+
+    /* Блоки шагов */
+    .cons-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+    .cons-block h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
+    .cons-block p.cons-hint {
+      font-size: 0.83rem;
+      color: var(--text2);
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    /* Настройки шаг 1 */
+    .cons-settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .cons-field label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text2);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .cons-field input,
+    .cons-field select {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.875rem;
+      box-sizing: border-box;
+    }
+    .grid-size-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .grid-size-row input { width: 70px; }
+    .grid-size-row span { color: var(--text2); }
+
+    /* Пресеты */
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .preset-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text2);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+    }
+    .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Кнопки навигации шагов */
+    .cons-nav-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Сетка конструктора */
+    .constructor-grid {
+      display: inline-grid;
+      gap: 2px;
+      cursor: crosshair;
+      user-select: none;
+      margin-top: 12px;
+    }
+    .cons-cell {
+      width: 36px; height: 36px;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      cursor: pointer;
+      transition: background .1s;
+      box-sizing: border-box;
+    }
+    .cons-cell:hover:not(.black) { background: color-mix(in srgb, var(--accent) 14%, var(--bg)); border-color: var(--accent); }
+    .cons-cell.black {
+      background: var(--bg3, #1a1a2e);
+      border-color: transparent;
+      cursor: pointer;
+    }
+    [data-theme="light"] .cons-cell.black { background: #ccc; }
+    .cons-num {
+      position: absolute;
+      top: 2px; left: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .cons-letter {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin-top: 4px;
+    }
+    .cons-cell.preview { cursor: default; }
+
+    /* Редактор слов (шаг 3) */
+    .clue-group-header {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 18px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .clue-editor {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .clue-editor-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .clue-num-badge {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      flex-shrink: 0;
+    }
+    .clue-len-hint {
+      font-size: 0.78rem;
+      color: var(--text2);
+    }
+    .clue-answer-input,
+    .clue-question-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', monospace;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+      transition: border-color .15s;
+    }
+    .clue-answer-input:focus,
+    .clue-question-input:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+    .clue-answer-input {
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .cons-empty-words {
+      padding: 20px;
+      color: var(--text2);
+      font-size: 0.875rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      line-height: 1.7;
+    }
+
+    /* Предпросмотр (шаг 4) */
+    .cons-preview-layout {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .preview-clue {
+      font-size: 0.83rem;
+      color: var(--text2);
+      padding: 4px 0;
+      line-height: 1.5;
+    }
+    .preview-clue b { color: var(--accent); }
+    .cons-export-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Баннер результата игры */
+    .result-banner {
+      margin-top: 16px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border: 1.5px solid var(--border);
+    }
+    .result-success { border-color: var(--green); color: var(--green); background: color-mix(in srgb, var(--green) 8%, transparent); }
+    .result-warn    { border-color: var(--yellow); color: var(--yellow); background: color-mix(in srgb, var(--yellow) 8%, transparent); }
+    .result-error   { border-color: var(--red);    color: var(--red);    background: color-mix(in srgb, var(--red) 8%, transparent); }
+
+    /* Активная ячейка игрового кроссворда */
+    .grid-cell.highlighted input { background: color-mix(in srgb, var(--accent) 18%, var(--bg2)); }
+    .grid-cell.active-cell input { background: color-mix(in srgb, var(--accent) 38%, var(--bg2)); border-color: var(--accent); }
+  </style>
 </head>
 <body>
 
@@ -27,7 +318,7 @@
   <section class="play-section" id="play" style="padding-top:100px">
     <div class="container">
       <h2 class="section-title">Решать кроссворды</h2>
-      <p class="section-subtitle">Выбери класс, тип и уровень сложности. Нажми на карточку, чтобы открыть кроссворд в режиме решения.</p>
+      <p class="section-subtitle">Выбери класс, тип и уровень. Нажми на карточку — откроется кроссворд. Таб переключает слово, стрелки двигают курсор.</p>
       <div class="play-filters">
         <select id="playClass"><option value="">Все классы</option></select>
         <select id="playType">
@@ -49,20 +340,20 @@
           <button class="btn btn-ghost" id="backBtn">← К списку</button>
           <h3 id="gameTitle"></h3>
           <div class="game-actions">
-            <button class="btn btn-ghost" id="checkBtn">Проверить</button>
-            <button class="btn btn-ghost" id="hintBtn">Подсказка</button>
-            <button class="btn btn-ghost" id="resetBtn">Сброс</button>
+            <button class="btn btn-ghost" id="checkBtn">✔ Проверить</button>
+            <button class="btn btn-ghost" id="hintBtn">💡 Подсказка</button>
+            <button class="btn btn-ghost" id="resetBtn">↺ Сброс</button>
           </div>
         </div>
         <div class="game-layout">
           <div class="crossword-grid" id="crosswordGrid"></div>
           <div class="clues-panel">
             <div class="clues-col">
-              <h4>По горизонтали</h4>
+              <h4>→ По горизонтали</h4>
               <div id="cluesAcross"></div>
             </div>
             <div class="clues-col">
-              <h4>По вертикали</h4>
+              <h4>↓ По вертикали</h4>
               <div id="cluesDown"></div>
             </div>
           </div>
@@ -76,37 +367,46 @@
   <section class="constructor-section" id="constructor">
     <div class="container">
       <h2 class="section-title">Конструктор кроссвордов</h2>
-      <p class="section-subtitle">Создай свой кроссворд: отметь чёрные клетки, пронумеруй слова, задай ответы и вопросы, затем сохрани или экспортируй.</p>
-      <div class="constructor-howto theory-block" style="margin-bottom:24px;padding:20px 24px;">
-        <h3>Краткая инструкция по конструктору</h3>
-        <ol style="margin-top:12px;padding-left:20px;font-size:0.9rem;color:var(--text2)">
-          <li>Выбери класс, тип кроссворда, сложность и размер сетки, затем нажми «Сгенерировать сетку».</li>
-          <li>Инструментом «■» пометь чёрные клетки, инструментом «□» верни белые.</li>
-          <li>Инструментом «123» кликни по начальной клетке слова, чтобы добавить его в список справа.</li>
-          <li>В правой панели для каждого слова введи ответ (только буквы) и текст вопроса.</li>
-          <li>Проверь, что пересечения не конфликтуют, затем нажми «Сохранить» или экспортируй JSON/PNG.</li>
-        </ol>
+      <p class="section-subtitle">Создай кроссворд за 4 простых шага.</p>
+
+      <!-- ПРОГРЕСС ШАГОВ -->
+      <div class="cons-steps">
+        <button class="cons-step-btn active" id="consStep1Btn">
+          <span class="step-num">1</span> Настройки
+        </button>
+        <button class="cons-step-btn" id="consStep2Btn">
+          <span class="step-num">2</span> Сетка
+        </button>
+        <button class="cons-step-btn" id="consStep3Btn">
+          <span class="step-num">3</span> Слова и вопросы
+        </button>
+        <button class="cons-step-btn" id="consStep4Btn">
+          <span class="step-num">4</span> Предпросмотр и сохранение
+        </button>
       </div>
-      <div class="constructor-layout">
-        <div class="constructor-settings">
-          <h3>Настройки</h3>
-          <div class="setting-group">
+
+      <!-- ШАГ 1 — НАСТРОЙКИ -->
+      <div class="cons-block" id="consBlock1">
+        <h3>Шаг 1 — Основные настройки</h3>
+        <p class="cons-hint">Задай название, класс, тип и размер сетки.</p>
+        <div class="cons-settings-grid">
+          <div class="cons-field">
             <label>Название кроссворда</label>
             <input type="text" id="cwName" placeholder="Мой кроссворд" />
           </div>
-          <div class="setting-group">
+          <div class="cons-field">
             <label>Класс</label>
             <select id="cwClass"></select>
           </div>
-          <div class="setting-group">
-            <label>Тип</label>
+          <div class="cons-field">
+            <label>Тип заданий</label>
             <select id="cwType">
               <option value="numeric">Числовой</option>
               <option value="word">Словесный</option>
               <option value="equation">Уравнения</option>
             </select>
           </div>
-          <div class="setting-group">
+          <div class="cons-field">
             <label>Сложность</label>
             <select id="cwDiff">
               <option value="easy">Лёгкий</option>
@@ -114,37 +414,75 @@
               <option value="hard">Сложный</option>
             </select>
           </div>
-          <div class="setting-group">
-            <label>Размер сетки</label>
-            <div class="grid-size-inputs">
-              <input type="number" id="cwRows" value="10" min="5" max="20" />
+          <div class="cons-field">
+            <label>Размер сетки (строки × столбцы)</label>
+            <div class="grid-size-row">
+              <input type="number" id="cwRows" value="10" min="4" max="20" />
               <span>×</span>
-              <input type="number" id="cwCols" value="10" min="5" max="20" />
+              <input type="number" id="cwCols" value="10" min="4" max="20" />
             </div>
           </div>
-          <button class="btn btn-primary" id="generateGridBtn">Сгенерировать сетку</button>
         </div>
-        <div class="constructor-grid-area">
-          <div class="constructor-toolbar">
-            <button class="tool-btn active" data-tool="block" title="Чёрная клетка">■</button>
-            <button class="tool-btn" data-tool="cell" title="Белая клетка">□</button>
-            <button class="tool-btn" data-tool="number" title="Пронумеровать">123</button>
-          </div>
-          <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text2)">
-            Легенда инструментов: «■» — чёрная клетка, «□» — белая клетка, «123» — добавить новое слово из выбранной начальной клетки.
-          </p>
-          <div class="constructor-grid" id="constructorGrid"></div>
-        </div>
-        <div class="constructor-clues">
-          <h3>Вопросы</h3>
-          <div id="cluesList"></div>
-          <div class="constructor-export">
-            <button class="btn btn-primary" id="saveCwBtn">Сохранить</button>
-            <button class="btn btn-ghost" id="exportJsonBtn">Скачать JSON</button>
-            <button class="btn btn-ghost" id="exportPngBtn">Скачать PNG</button>
-          </div>
+        <div class="cons-nav-btns">
+          <button class="btn btn-primary" id="generateGridBtn">Создать сетку →</button>
         </div>
       </div>
+
+      <!-- ШАГ 2 — СЕТКА -->
+      <div class="cons-block" id="consBlock2" style="display:none">
+        <h3>Шаг 2 — Нарисуй сетку</h3>
+        <p class="cons-hint">
+          Кликни по клетке — она станет чёрной. Кликни снова — вернётся белой.<br>
+          Зажми мышь и веди — закрашивай несколько клеток сразу.<br>
+          Белые клетки, стоящие в ряд ≥ 2, автоматически станут словами на следующем шаге.
+        </p>
+        <div class="preset-btns">
+          <span style="font-size:0.78rem;color:var(--text2);align-self:center">Шаблоны:</span>
+          <button class="preset-btn" data-grid-preset="plus">Крест</button>
+          <button class="preset-btn" data-grid-preset="checker">Шахматный</button>
+          <button class="preset-btn" data-grid-preset="frame">Рамка</button>
+        </div>
+        <div class="constructor-grid" id="constructorGrid"></div>
+        <div class="cons-nav-btns">
+          <button class="btn btn-ghost" id="consStep1Btn2" onclick="document.getElementById('consStep1Btn').click()">← Назад</button>
+          <button class="btn btn-primary" id="consToStep3Btn">Далее: добавить слова →</button>
+        </div>
+      </div>
+
+      <!-- ШАГ 3 — СЛОВА И ВОПРОСЫ -->
+      <div class="cons-block" id="consBlock3" style="display:none">
+        <h3>Шаг 3 — Заполни ответы и вопросы</h3>
+        <p class="cons-hint">
+          Слова определяются автоматически по сетке. Для каждого введи ответ (все буквы без пробелов) и вопрос/задание.
+          Убедись, что пересекающиеся слова содержат одинаковые буквы на пересечениях.
+        </p>
+        <div id="cluesList"></div>
+        <div class="cons-nav-btns">
+          <button class="btn btn-ghost" id="consBackStep2Btn">← Изменить сетку</button>
+          <button class="btn btn-primary" id="consToStep4Btn">Предпросмотр →</button>
+        </div>
+      </div>
+
+      <!-- ШАГ 4 — ПРЕДПРОСМОТР И СОХРАНЕНИЕ -->
+      <div class="cons-block" id="consBlock4" style="display:none">
+        <h3>Шаг 4 — Предпросмотр и сохранение</h3>
+        <p class="cons-hint">Проверь как выглядит кроссворд с буквами, затем сохрани или экспортируй.</p>
+        <div class="cons-preview-layout">
+          <div>
+            <div class="constructor-grid" id="consPreviewGrid"></div>
+          </div>
+          <div style="flex:1;min-width:200px;max-height:400px;overflow-y:auto">
+            <div id="consPreviewClues"></div>
+          </div>
+        </div>
+        <div class="cons-export-btns">
+          <button class="btn btn-ghost" id="consBackStep3Btn">← Изменить слова</button>
+          <button class="btn btn-primary" id="saveCwBtn">💾 Сохранить кроссворд</button>
+          <button class="btn btn-ghost" id="exportJsonBtn">📄 Скачать JSON</button>
+          <button class="btn btn-ghost" id="exportPngBtn">🖼️ Скачать PNG</button>
+        </div>
+      </div>
+
     </div>
   </section>
 
